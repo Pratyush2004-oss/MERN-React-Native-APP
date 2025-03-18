@@ -12,15 +12,17 @@ import styles from "@/assets/styleSheets/signup.styles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import COLORS from "@/constants/colors";
 import { useRouter } from "expo-router";
+import { useAuthStore } from "@/store/auth.store";
 export default function Signup() {
-  const [userName, setuserName] = useState<string>("");
+  const [username, setusername] = useState<string>("");
   const [email, setemail] = useState<string>("");
   const [password, setpassword] = useState<string>("");
   const [showPassword, setshowPassword] = useState<boolean>(false);
-  const [isLoading, setisLoading] = useState<boolean>(false);
-
+  const { error, isLoading, registerUser } = useAuthStore();
   const router = useRouter();
-  const handleSignUp = async () => {};
+  const handleSignUp = async () => {
+    await registerUser({ username, email, password });
+  };
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -50,8 +52,8 @@ export default function Signup() {
                   style={styles.input}
                   placeholder="Email"
                   placeholderTextColor={COLORS.placeholderText}
-                  value={userName}
-                  onChangeText={(text) => setuserName(text)}
+                  value={username}
+                  onChangeText={(text) => setusername(text)}
                 />
               </View>
             </View>
@@ -72,6 +74,7 @@ export default function Signup() {
                   placeholderTextColor={COLORS.placeholderText}
                   value={email}
                   onChangeText={(text) => setemail(text)}
+                  keyboardType="email-address"
                 />
               </View>
             </View>
