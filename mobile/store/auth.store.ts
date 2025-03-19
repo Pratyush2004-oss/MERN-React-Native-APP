@@ -2,7 +2,6 @@ import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Alert } from "react-native";
-import { useRouter } from "expo-router";
 
 const BASE_URL = "https://mern-react-native-app.onrender.com";
 
@@ -17,6 +16,7 @@ interface AuthStore {
     password: string
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  checkAuth: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   registerUser: async (username, email, password) => {
     try {
-      set({ isLoading: true, error:null });
+      set({ isLoading: true, error: null });
       const response = await axios.post(
         `${BASE_URL}/api/v1/auth/signup`,
         { username, email, password },
@@ -54,7 +54,43 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
   },
 
-  login: async (email, password) => {},
+  login: async (email, password) => {
+    try {
+      set({ isLoading: true });
+      const response = await axios.post(`${BASE_URL}/api/v1/auth/login`, {
+        email,
+        password,
+      });
+      AsyncStorage.setItem("token", response.data.token);
+      AsyncStorage.setItem("user", JSON.stringify(response.data.user));
+      set({
+        user: response.data.user,
+        error: null,
+        token: response.data.token,
+      });
+      Alert.alert(response.data.message);
+    } catch (error: any) {
+      Alert.alert("Error", error.response.data.message);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-  logout: async () => {},
+  checkAuth: async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const userJSON = await AsyncStorage.getItem("user");
+
+      const user = userJSON ? JSON.parse(userJSON) : null;
+      set({ user, token });
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+  logout: async () => {
+    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("user");
+    set({ user: null, token: null });
+  },
 }));

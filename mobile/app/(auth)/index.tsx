@@ -13,13 +13,16 @@ import styles from "../../assets/styleSheets/login.styles";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import COLORS from "@/constants/colors";
 import { Link } from "expo-router";
+import { useAuthStore } from "@/store/auth.store";
 export default function Login() {
   const [email, setemail] = useState<string>("");
   const [password, setpassword] = useState<string>("");
   const [showPassword, setshowPassword] = useState<boolean>(false);
-  const [isLoading, setisLoading] = useState<boolean>(false);
+  const { isLoading, login } = useAuthStore();
 
-  const handleLogin = async () => {};
+  const handleLogin = async () => {
+    await login(email, password);
+  };
 
   return (
     <KeyboardAvoidingView

@@ -18,7 +18,7 @@ export default function Signup() {
   const [email, setemail] = useState<string>("");
   const [password, setpassword] = useState<string>("");
   const [showPassword, setshowPassword] = useState<boolean>(false);
-  const { error, isLoading, registerUser } = useAuthStore();
+  const { isLoading, registerUser } = useAuthStore();
   const router = useRouter();
   const handleSignUp = async () => {
     await registerUser(username, email, password);
