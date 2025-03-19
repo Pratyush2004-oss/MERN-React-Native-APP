@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from 'cors';
 
 import { connectToDb } from "./config/db.js";
+import job from "./config/cron.js";
 
 
 // Importing routes
@@ -15,6 +16,7 @@ const app = express();
 app.use(express.json());    // Middleware to parse json data
 
 app.use(cors());
+job.start();
 
 // Routes
 app.use('/api/v1/auth', authRouter);

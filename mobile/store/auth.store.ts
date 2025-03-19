@@ -1,29 +1,22 @@
-import {create} from "zustand";
+import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { Alert } from "react-native";
+import { useRouter } from "expo-router";
 
-const BASE_URL = "http://localhost:3000/api/v1";
+const BASE_URL = "https://mern-react-native-app.onrender.com";
 
 interface AuthStore {
   user: any;
   error: string | null;
   isLoading: boolean;
   token: string | null;
-  registerUser: ({
-    username,
-    email,
-    password,
-  }: {
-    username: string;
-    email: string;
-    password: string;
-  }) => Promise<void>;
-  login: ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => Promise<void>;
+  registerUser: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -33,35 +26,35 @@ export const useAuthStore = create<AuthStore>((set) => ({
   isLoading: false,
   token: null,
 
-  registerUser: async ({ username, email, password }) => {
+  registerUser: async (username, email, password) => {
     try {
-      set({ isLoading: true });
-      const response = await fetch(`${BASE_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
+      set({ isLoading: true, error:null });
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/auth/signup`,
+        { username, email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      AsyncStorage.setItem("token", response.data.token);
+      AsyncStorage.setItem("user", JSON.stringify(response.data.user));
+      set({
+        user: response.data.user,
+        error: null,
+        token: response.data.token,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Something went wrong");
-      console.log("Success");
-      await AsyncStorage.setItem("user", JSON.stringify(data.user));
-      await AsyncStorage.setItem("token", data.token);
-
-      set({ user: data.user, token: data.token, error: null });
+      Alert.alert(response.data.message);
     } catch (error: any) {
-      set({ error: error.message, user: null });
+      Alert.alert("Error", error.response.data.message);
+      set({ error: error.response.data.message, user: null });
     } finally {
       set({ isLoading: false });
     }
   },
 
-  login: async ({ email, password }) => {},
+  login: async (email, password) => {},
 
   logout: async () => {},
 }));

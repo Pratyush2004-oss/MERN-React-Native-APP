@@ -21,7 +21,7 @@ export default function Signup() {
   const { error, isLoading, registerUser } = useAuthStore();
   const router = useRouter();
   const handleSignUp = async () => {
-    await registerUser({ username, email, password });
+    await registerUser(username, email, password);
   };
   return (
     <KeyboardAvoidingView
@@ -36,6 +36,11 @@ export default function Signup() {
             <Text style={styles.subtitle}>Share your Favourite reads</Text>
           </View>
 
+          {/* {error && (
+            <Text style={{ color: "red", textAlign: "center", fontSize: 14 }}>
+              {error}
+            </Text>
+          )} */}
           {/* Form */}
           <View style={styles.formContainer}>
             {/* User name */}
@@ -50,7 +55,7 @@ export default function Signup() {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Email"
+                  placeholder="Username"
                   placeholderTextColor={COLORS.placeholderText}
                   value={username}
                   onChangeText={(text) => setusername(text)}
