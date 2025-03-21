@@ -2,8 +2,9 @@ import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Alert } from "react-native";
+import { API_URL } from "@/constants/api";
 
-const BASE_URL = "https://mern-react-native-app.onrender.com";
+const BASE_URL = API_URL;
 
 interface AuthStore {
   user: any;
@@ -11,11 +12,11 @@ interface AuthStore {
   isLoading: boolean;
   token: string | null;
   registerUser: (
-    username: string,
-    email: string,
-    password: string
+    username: string | null,
+    email: string | null,
+    password: string | null
   ) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string | null, password: string | null) => Promise<void>;
   checkAuth: () => Promise<void>;
   logout: () => Promise<void>;
 }
