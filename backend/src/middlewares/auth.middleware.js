@@ -3,7 +3,7 @@ import User from '../models/user.model.js'
 const ProtectRoute = async (req, res, next) => {
     try {
         // get Token 
-        const token = req.headers("Authorization").replace("Bearer ", "");
+        const token = req.header("Authorization").replace("Bearer", "");
         if (!token) {
             return res.status(401).json({ message: "No authentication token, access denied" });
         }
