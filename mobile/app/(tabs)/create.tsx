@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ToastAndroid,
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
@@ -26,7 +27,7 @@ export default function Create() {
   const [image, setimage] = useState<string | null>(null);
   const [imageBase64, setimageBase64] = useState<string | null>(null);
 
-  const {createBook, isLoading} = useBookStore();
+  const { createBook, isLoading } = useBookStore();
   const router = useRouter();
 
   const pickImage = async () => {
@@ -77,7 +78,22 @@ export default function Create() {
 
   const handleSubmit = async () => {
     try {
-      await createBook(title, caption, imageBase64, rating, image);
+      const result = await createBook(
+        title,
+        caption,
+        imageBase64,
+        rating,
+        image
+      );
+      if (result) {
+        settitle("");
+        setcaption("");
+        setimage(null);
+        setimageBase64(null);
+        setrating(3);
+
+        router.push("/");
+      }
     } catch (error) {}
   };
 

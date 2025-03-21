@@ -25,7 +25,7 @@ app.use('/api/v1/books', bookRouter);
 
 // error handler routes
 app.use((err, req, res, next) => {
-    res.status(500).json({ message: process.env.NODE_ENV === 'production' ? "Internal Server Error" : "Internal Server Error : " + err.message })
+    res.status(500).json({ message: process.env.NODE_ENV === 'production' ? "Internal Server Error" + err.message : "Internal Server Error : " + err.message })
 })
 app.listen(PORT, () => {
     connectToDb();

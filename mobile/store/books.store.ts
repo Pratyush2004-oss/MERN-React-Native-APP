@@ -3,6 +3,7 @@ import { create } from "zustand";
 import axios from "axios";
 import { useAuthStore } from "./auth.store";
 import { API_URL } from "@/constants/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL = API_URL;
 interface BookStore {
@@ -27,16 +28,17 @@ export const useBookStore = create<BookStore>((set) => ({
         Alert.alert("Error", "All fields are required");
         return false;
       }
-      const token = useAuthStore().token;
+      const token = await AsyncStorage.getItem("token");
 
       // get file extension
       const uriParts = image?.split(".");
-      const fileType = uriParts ? uriParts[uriParts.length - 1] : null;
+      const fileType = uriParts[uriParts.length - 1];
       const imageType = fileType
         ? `image/${fileType.toLowerCase()}`
         : "image/jpeg";
 
       const imageDataUri = `data:${imageType};base64,${imageBase64}`;
+      console.log("imageDataUri : ", fileType);
 
       const response = await axios.post(
         `${BASE_URL}/api/v1/books`,
@@ -54,12 +56,14 @@ export const useBookStore = create<BookStore>((set) => ({
         }
       );
 
-      console.log(response.data);
+      // console.log(response);
       Alert.alert("Success", response.data.message);
+      set({ error: null });
 
       return true;
     } catch (error: any) {
-      console.log(error.response);
+      console.log(error);
+      set({ error: error });
       Alert.alert("Error", error.response.data.message);
       return false;
     } finally {
