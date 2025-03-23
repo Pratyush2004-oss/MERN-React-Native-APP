@@ -38,7 +38,7 @@ export const useBookStore = create<BookStore>((set) => ({
         : "image/jpeg";
 
       const imageDataUri = `data:${imageType};base64,${imageBase64}`;
-      console.log("imageDataUri : ", fileType);
+      console.log(imageDataUri);
 
       const response = await axios.post(
         `${BASE_URL}/api/v1/books`,

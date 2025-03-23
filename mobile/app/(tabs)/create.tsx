@@ -18,7 +18,9 @@ import COLORS from "@/constants/colors";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
-import { useBookStore } from "@/store/books.store";
+import { useAuthStore } from "@/store/auth.store";
+import axios from "axios";
+import { API_URL } from "@/constants/api";
 
 export default function Create() {
   const [title, settitle] = useState<string>("");
@@ -26,9 +28,9 @@ export default function Create() {
   const [rating, setrating] = useState<number>(3);
   const [image, setimage] = useState<string | null>(null);
   const [imageBase64, setimageBase64] = useState<string | null>(null);
-
-  const { createBook, isLoading } = useBookStore();
+  const [isLoading, setisLoading] = useState(false);
   const router = useRouter();
+  const { token } = useAuthStore();
 
   const pickImage = async () => {
     try {
@@ -78,23 +80,42 @@ export default function Create() {
 
   const handleSubmit = async () => {
     try {
-      const result = await createBook(
-        title,
-        caption,
-        imageBase64,
-        rating,
-        image
-      );
-      if (result) {
-        settitle("");
-        setcaption("");
-        setimage(null);
-        setimageBase64(null);
-        setrating(3);
-
-        router.push("/");
+      setisLoading(true);
+      if (!title || !caption || !imageBase64 || !rating) {
+        Alert.alert("Error", "All fields are required");
+        return;
       }
-    } catch (error) {}
+
+      // get the file extension from the image uri
+      const uriParts = image?.split(".");
+      const fileType = uriParts && uriParts[uriParts.length - 1];
+      const imageType = fileType
+        ? `image/${fileType.toLowerCase()}`
+        : "image/jpeg";
+
+      const imageDataUri = `data:${imageType};base64,${imageBase64}`;
+      const response = await axios.post(
+        `${API_URL}/api/v1/books`,
+        {
+          title,
+          caption,
+          image: imageDataUri,
+          rating: rating.toString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(response.data);
+    } catch (error: any) {
+      console.log(error);
+    } finally {
+      setisLoading(false);
+    }
   };
 
   const renderRatingPicker = () => {

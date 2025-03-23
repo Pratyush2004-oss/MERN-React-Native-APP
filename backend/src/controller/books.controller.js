@@ -9,6 +9,7 @@ export const addBook = async (req, res, next) => {
         if (!title || !caption || !rating || !image) {
             return res.status(400).json({ message: "All fields are required" });
         }
+        console.log(image);
 
         const uploadResponse = await cloudinary.uploader.upload(image);
         const imageUrl = uploadResponse.secure_url;
@@ -17,8 +18,8 @@ export const addBook = async (req, res, next) => {
         const newBook = new Book({
             title,
             caption,
-            image: imageUrl,
             rating,
+            image: imageUrl,
             user: req.user._id
         });
 
@@ -65,7 +66,7 @@ export const getAllBooks = async (req, res, next) => {
 export const getBooksByUser = async (req, res, next) => {
     try {
         const books = await Book.find({ user: req.user._id }).sort({ createdAt: -1 });
-        res.status(200).json({ books });        
+        res.status(200).json({ books });
     } catch (error) {
         console.log("Error in Getting books of user controller: ", error);
         next(error);
