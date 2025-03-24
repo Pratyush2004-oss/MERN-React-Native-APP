@@ -48,7 +48,7 @@ export default function Create() {
 
       // launch Image Library
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: "images",
         allowsEditing: true,
         quality: 0.5,
         aspect: [4, 3],
@@ -94,6 +94,7 @@ export default function Create() {
         : "image/jpeg";
 
       const imageDataUri = `data:${imageType};base64,${imageBase64}`;
+      console.log(imageDataUri);
       const response = await axios.post(
         `${API_URL}/api/v1/books`,
         {
@@ -110,9 +111,10 @@ export default function Create() {
         }
       );
 
-      console.log(response.data);
+      console.log(response);
     } catch (error: any) {
-      console.log(error);
+      Alert.alert("Error", error.response.data.message);
+      console.log(error.response.data);
     } finally {
       setisLoading(false);
     }

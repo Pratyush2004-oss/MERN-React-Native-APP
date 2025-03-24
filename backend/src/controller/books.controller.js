@@ -9,7 +9,6 @@ export const addBook = async (req, res, next) => {
         if (!title || !caption || !rating || !image) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        console.log(image);
 
         const uploadResponse = await cloudinary.uploader.upload(image);
         const imageUrl = uploadResponse.secure_url;
@@ -38,7 +37,7 @@ export const addBook = async (req, res, next) => {
 export const getAllBooks = async (req, res, next) => {
     try {
         const page = req.query.page || 1;
-        const limit = req.query.limit || 5;
+        const limit = req.query.limit || 3;
         const skip = (page - 1) * limit;
 
         const totalBooks = await Book.countDocuments();
@@ -105,6 +104,34 @@ export const deleteBook = async (req, res, next) => {
 
     } catch (error) {
         console.log("Error in Delete Book Controller : ", error);
+        next(error);
+    }
+}
+
+
+export const addBookbyLink = async (req, res, next) => {
+    try {
+        const { title, caption, rating, image } = req.body;
+
+        if (!title || !caption || !rating || !image) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Save book to database
+        const newBook = new Book({
+            title,
+            caption,
+            rating,
+            image,
+            user: req.user._id
+        });
+
+        await newBook.save();
+
+        res.status(200).json({ message: "Book added successfully", book: newBook });
+
+    } catch (error) {
+        console.log("Error in adding book controller", error);
         next(error);
     }
 }
