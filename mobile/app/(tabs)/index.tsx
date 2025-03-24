@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Alert } from "react-native";
+import { View, Text, FlatList, Alert, ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { Books } from "@/constants/types";
@@ -9,6 +9,7 @@ import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import COLORS from "@/constants/colors";
 import { formatPublishDate } from "@/lib/utils";
+import Loader from "@/components/Loader";
 
 export default function Home() {
   const { token } = useAuthStore();
@@ -18,23 +19,22 @@ export default function Home() {
   const [page, setpage] = useState<number>(1);
   const [hasMore, sethasMore] = useState<boolean>(true);
 
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   const fetchBooks = async (pageNum = 1, refresh = false) => {
     try {
       if (refresh) setrefreshing(true);
       else if (pageNum === 1) setisLoading(true);
 
       const response = await axios.get(
-        `${API_URL}/api/v1/books?page=${pageNum}&limit=5`,
+        `${API_URL}/api/v1/books?page=${pageNum}&limit=3`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      // console.log(response.data);
-
-      // todo fix the duplicacy of the books
-      // setbooks((prevBooks) => [...prevBooks, ...response.data.books]);
 
       const uniqueBoooks =
         refresh || pageNum === 1
@@ -49,7 +49,7 @@ export default function Home() {
       setbooks(uniqueBoooks);
 
       sethasMore(pageNum < response.data.totalPages);
-      setpage(pageNum + 1);
+      setpage(pageNum);
     } catch (error: any) {
       console.log(error);
       Alert.alert("Error", error.response.data.message);
@@ -59,7 +59,11 @@ export default function Home() {
     }
   };
 
-  const handleLoadMore = async () => {};
+  const handleLoadMore = async () => {
+    if (hasMore && !isLoading && !refreshing) {
+      await fetchBooks(page + 1);
+    }
+  };
   useEffect(() => {
     fetchBooks();
   }, []);
@@ -114,6 +118,10 @@ export default function Home() {
     return stars;
   };
 
+  if (isLoading) {
+    return <Loader size={"large"} />;
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -122,6 +130,8 @@ export default function Home() {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item._id}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.headerTitle}>BookWorm</Text>
@@ -130,13 +140,28 @@ export default function Home() {
             </Text>
           </View>
         }
-        ListEmptyComponent={(
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="book-outline" size={60} color={COLORS.textSecondary}/>
+            <Ionicons
+              name="book-outline"
+              size={60}
+              color={COLORS.textSecondary}
+            />
             <Text style={styles.emptyText}>No recommendations yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to share a book!</Text>
+            <Text style={styles.emptySubtext}>
+              Be the first to share a book!
+            </Text>
           </View>
-        )}
+        }
+        ListFooterComponent={
+          hasMore && books.length > 0 ? (
+            <ActivityIndicator
+              size="small"
+              style={styles.footerLoader}
+              color={COLORS.primary}
+            />
+          ) : null
+        }
       />
     </View>
   );
