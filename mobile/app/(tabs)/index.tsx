@@ -1,4 +1,11 @@
-import { View, Text, FlatList, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Alert,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { Books } from "@/constants/types";
@@ -24,8 +31,10 @@ export default function Home() {
 
   const fetchBooks = async (pageNum = 1, refresh = false) => {
     try {
-      if (refresh) setrefreshing(true);
-      else if (pageNum === 1) setisLoading(true);
+      if (refresh) {
+        setrefreshing(true);
+        await sleep(1000);
+      } else setisLoading(true);
 
       const response = await axios.get(
         `${API_URL}/api/v1/books?page=${pageNum}&limit=3`,
@@ -128,8 +137,17 @@ export default function Home() {
         data={books}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchBooks(1, true)}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+        refreshing={refreshing}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListHeaderComponent={
