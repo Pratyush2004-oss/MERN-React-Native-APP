@@ -3,11 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Alert } from "react-native";
 import { API_URL } from "@/constants/api";
+import { User } from "@/constants/types";
 
 const BASE_URL = API_URL;
 
 interface AuthStore {
-  user: any;
+  user: User | null;
   error: string | null;
   isLoading: boolean;
   token: string | null;
@@ -22,7 +23,7 @@ interface AuthStore {
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
-  user: null,
+  user:null,
   error: null,
   isLoading: false,
   token: null,

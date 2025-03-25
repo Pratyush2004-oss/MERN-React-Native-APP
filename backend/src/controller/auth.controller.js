@@ -47,7 +47,8 @@ export const signup = async (req, res, next) => {
             user: {
                 username: user.username,
                 email: user.email,
-                profileImage: user.profileImage
+                profileImage: user.profileImage,
+                createdAt: user.createdAt
             }
         });
     } catch (error) {
@@ -82,7 +83,8 @@ export const login = async (req, res, next) => {
             user: {
                 username: user.username,
                 email: user.email,
-                profileImage: user.profileImage
+                profileImage: user.profileImage,
+                createdAt: user.createdAt
             }
         });
 

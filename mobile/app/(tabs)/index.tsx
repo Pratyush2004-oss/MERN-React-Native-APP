@@ -31,10 +31,8 @@ export default function Home() {
 
   const fetchBooks = async (pageNum = 1, refresh = false) => {
     try {
-      if (refresh) {
-        setrefreshing(true);
-        await sleep(1000);
-      } else setisLoading(true);
+      if (refresh) setrefreshing(true);
+      else if (pageNum === 1) setisLoading(true);
 
       const response = await axios.get(
         `${API_URL}/api/v1/books?page=${pageNum}&limit=3`,
@@ -63,7 +61,10 @@ export default function Home() {
       console.log(error);
       Alert.alert("Error", error.response.data.message);
     } finally {
-      if (refresh) setrefreshing(false);
+      if (refresh) {
+        sleep(800);
+        setrefreshing(false);
+      }
       else setisLoading(false);
     }
   };
@@ -147,7 +148,6 @@ export default function Home() {
             tintColor={COLORS.primary}
           />
         }
-        refreshing={refreshing}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListHeaderComponent={

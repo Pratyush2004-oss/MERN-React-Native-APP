@@ -11,3 +11,10 @@ export interface Books {
     profileImage: string;
   }
 }
+
+export interface User {
+  email: string;
+  username: string;
+  profileImage: string;
+  createdAt:string
+}
