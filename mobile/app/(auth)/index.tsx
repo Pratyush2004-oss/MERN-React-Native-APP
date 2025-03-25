@@ -18,11 +18,13 @@ export default function Login() {
   const [email, setemail] = useState<string>("");
   const [password, setpassword] = useState<string>("");
   const [showPassword, setshowPassword] = useState<boolean>(false);
-  const { isLoading, login } = useAuthStore();
+  const { isLoading, login, isCheckingAuth } = useAuthStore();
 
   const handleLogin = async () => {
     await login(email, password);
   };
+
+  if(isCheckingAuth) return null;
 
   return (
     <KeyboardAvoidingView

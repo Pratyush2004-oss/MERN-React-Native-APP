@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  ToastAndroid,
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
@@ -17,7 +16,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import COLORS from "@/constants/colors";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
 import { useAuthStore } from "@/store/auth.store";
 import axios from "axios";
 import { API_URL } from "@/constants/api";
@@ -27,7 +25,6 @@ export default function Create() {
   const [caption, setcaption] = useState<string>("");
   const [rating, setrating] = useState<number>(3);
   const [image, setimage] = useState<string | null>(null);
-  const [imageBase64, setimageBase64] = useState<string | null>(null);
   const [isLoading, setisLoading] = useState(false);
   const router = useRouter();
   const { token } = useAuthStore();
@@ -57,21 +54,6 @@ export default function Create() {
 
       if (!result.canceled) {
         setimage(result.assets[0].uri);
-
-        // if base64 is provided then use it
-        if (result.assets[0].base64) {
-          setimageBase64(result.assets[0].base64);
-        }
-        // otherwise convert it into base64
-        else {
-          const base64 = await FileSystem.readAsStringAsync(
-            result.assets[0].uri,
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            }
-          );
-          setimageBase64(base64);
-        }
       }
     } catch (error: any) {
       Alert.alert("Error", "There was a problem in selecting the image.");
@@ -81,40 +63,46 @@ export default function Create() {
   const handleSubmit = async () => {
     try {
       setisLoading(true);
-      if (!title || !caption || !imageBase64 || !rating) {
+
+      if (!image) {
+        Alert.alert("No Image Selected", "Please select an image first..");
+        return;
+      }
+
+      if (!title || !caption || !rating) {
         Alert.alert("Error", "All fields are required");
         return;
       }
 
-      // get the file extension from the image uri
-      const uriParts = image?.split(".");
-      const fileType = uriParts && uriParts[uriParts.length - 1];
-      const imageType = fileType
-        ? `image/${fileType.toLowerCase()}`
-        : "image/jpeg";
+      // convert image uri to blob (required for formdata)
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => resolve(xhr.response as Blob);
+        xhr.onerror = () => reject(new TypeError("Network request failed"));
+        xhr.responseType = "blob";
+        xhr.open("GET", image, true);
+        xhr.send(null);
+      });
 
-      const imageDataUri = `data:${imageType};base64,${imageBase64}`;
-      console.log(imageDataUri);
-      const response = await axios.post(
-        `${API_URL}/api/v1/books`,
-        {
-          title,
-          caption,
-          image: imageDataUri,
-          rating: rating.toString(),
+      // Create form data
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("caption", caption);
+      formData.append("image", blob, "image.jpg");
+      formData.append("rating", rating.toString());
+
+      const response = await axios.post(`${API_URL}/api/v1/books`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      });
 
-      console.log(response);
+      Alert.alert("Success", response.data.message);
+      router.navigate("/(tabs)");
     } catch (error: any) {
       Alert.alert("Error", error.response.data.message);
-      console.log(error.response.data);
+      console.log(error.response.data.message);
     } finally {
       setisLoading(false);
     }

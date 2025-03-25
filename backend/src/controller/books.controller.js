@@ -1,16 +1,21 @@
 import cloudinary from "../config/cloudinary.js";
+import getDataUri from "../config/dataUri.js";
 import Book from "../models/books.model.js";
 
 // upload book to the collection
 export const addBook = async (req, res, next) => {
     try {
-        const { title, caption, rating, image } = req.body;
+        const file = req.file;
+        if(!file){
+            return res.status(400).json({ message: "Image is required" });
+        }
+        const { title, caption, rating } = req.body;
 
-        if (!title || !caption || !rating || !image) {
+        if (!title || !caption || !rating) {
             return res.status(400).json({ message: "All fields are required" });
         }
-
-        const uploadResponse = await cloudinary.uploader.upload(image);
+        const fileUri = getDataUri(file);
+        const uploadResponse = await cloudinary.uploader.upload(fileUri.content);
         const imageUrl = uploadResponse.secure_url;
 
         // Save book to database
