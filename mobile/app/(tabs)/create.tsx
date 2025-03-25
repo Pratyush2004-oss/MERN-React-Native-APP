@@ -16,6 +16,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import COLORS from "@/constants/colors";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system"
 import { useAuthStore } from "@/store/auth.store";
 import axios from "axios";
 import { API_URL } from "@/constants/api";
@@ -74,21 +75,31 @@ export default function Create() {
         return;
       }
 
+      // get the fileinfo 
+      const fileInfo = await FileSystem.getInfoAsync(image);
+      if(!fileInfo.exists){
+        throw new Error("File does not exist")
+      }
+
       // convert image uri to blob (required for formdata)
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = () => resolve(xhr.response as Blob);
-        xhr.onerror = () => reject(new TypeError("Network request failed"));
-        xhr.responseType = "blob";
-        xhr.open("GET", image, true);
-        xhr.send(null);
-      });
+      // const blob = await new Promise<Blob>((resolve, reject) => {
+      //   const xhr = new XMLHttpRequest();
+      //   xhr.onload = () => resolve(xhr.response as Blob);
+      //   xhr.onerror = () => reject(new TypeError("Network request failed"));
+      //   xhr.responseType = "blob";
+      //   xhr.open("GET", image, true);
+      //   xhr.send(null);
+      // });
 
       // Create form data
       const formData = new FormData();
       formData.append("title", title);
       formData.append("caption", caption);
-      formData.append("image", blob, "image.jpg");
+      formData.append("image", {
+        uri: image,
+        name: "image.jpg",
+        type: "image/jpeg",
+      } as any);
       formData.append("rating", rating.toString());
 
       const response = await axios.post(`${API_URL}/api/v1/books`, formData, {
